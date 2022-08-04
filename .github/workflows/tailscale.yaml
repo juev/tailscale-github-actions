@@ -31,3 +31,4 @@ jobs:
         timeout-minutes: 15
         run: >
           sudo tailscale up --auth-key ${{ secrets.TAILSCALE_AUTHKEY }} --ssh --hostname github-actions --advertise-exit-node --accept-dns=false
+          && sleep 10m
