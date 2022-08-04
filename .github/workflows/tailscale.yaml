@@ -1,0 +1,33 @@
+name: Tailscale
+
+on:
+  - push
+
+concurrency:
+  group: tailscale
+  cancel-in-progress: true
+
+jobs:
+  openvpn-server:
+    name: Tailscale
+    runs-on: ubuntu-22.04
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v3
+        with:
+          fetch-depth: 0
+
+      - name: Install packages and configure system
+        run: >
+          sudo rm /var/lib/man-db/auto-update
+          && curl -fsSL https://pkgs.tailscale.com/stable/ubuntu/jammy.noarmor.gpg | sudo tee /usr/share/keyrings/tailscale-archive-keyring.gpg >/dev/null
+          && curl -fsSL https://pkgs.tailscale.com/stable/ubuntu/jammy.tailscale-keyring.list | sudo tee /etc/apt/sources.list.d/tailscale.list
+          && sudo DEBIAN_FRONTEND=noninteractive eatmydata
+          apt update
+          && sudo DEBIAN_FRONTEND=noninteractive eatmydata
+          apt install -y --no-install-recommends tailscale
+
+      - name: Run Tailscale
+        timeout-minutes: 15
+        run: >
+          sudo tailscale up --auth-key ${{ secrets.TAILSCALE_AUTHKEY }} --ssh --hostname github-actions --advertise-exit-node --accept-dns=false
